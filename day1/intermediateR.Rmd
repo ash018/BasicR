@@ -1,0 +1,429 @@
+---
+title: "Topic 2: Programming in R"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### What we will learn here
+
+* Relational operators
+* Logical operators
+* Conditional statement
+* Looping
+* Function
+* apply family: lapply, sapply, tapply
+
+### Relational Operators
+
+### ==
+
+```{r}
+2==2
+2==3
+TRUE==FALSE
+TRUE==TRUE
+2 != 3
+"me" != "you"
+```
+
+### <    >    <=     >=
+
+```{r}
+2 > 5
+2 < 5
+2 >= 3
+2 <= 3
+3 <= 3
+```
+
+### Relational operators on vector(s)
+
+Suppose we have two vectors of average expenditure (in thousands) for 12 months in 2017 measured for 2 households: A and B. Now we are curious to know on which months the expenditure of A was above than a particular level and on which months A had more expenditure than B.
+
+
+```{r}
+average_exp_A = c(24, 28, 29, 31, 32, 32.5, 33, 33, 31, 30, 27, 22)
+average_exp_B = c(25, 29, 30, 30, 31, 33, 34, 35, 30.9, 28, 25, 23)
+# In which month, expenditur in A was lower than 30 K
+average_exp_A < 30
+```
+
+```{r}
+which(average_exp_A < 30)
+#In which month A had more expenditure than B?
+
+```
+
+```{r}
+average_exp_A > average_exp_B
+
+```
+
+```{r}
+which(average_exp_A > average_exp_B)
+```
+
+
+
+We can also use this with matrices.
+
+###Logical Operators
+
+**AND**      **&**
+**OR**       **|**
+**NOT**      **!**
+
+**&&** and **||** only oerates on the first element of the two vectors we are comparing.
+
+### Conditional statements
+
+### if
+
+if(a statement is true){
+  do something
+}
+
+```{r}
+profit = 200000
+if(profit > 100000){
+  print("Well done! Life is good")
+}
+```
+
+### else
+
+```{r}
+profit = 250000
+if(profit > 500000){
+  print("Great job!")
+} else{
+  print("Well done! But,we want more")
+}
+```
+
+### else if
+
+```{r}
+if(profit < 200000){
+  print("You need to do much more")
+} else if(profit >=200000 & profit <=500000){
+  print("Well done! But,we want more")
+} else{
+  print("Great job!")
+}
+```
+
+### while loop
+
+while(a condition is true) {
+  continuously evaluate an expression
+}
+
+#### Using while loop to sum up numbers between 1 and 100
+
+```{r}
+total = 0
+num = 100
+while(num>0){
+  total = total + num
+  num = num - 1
+}
+print(paste("The sum of numbers between 1 and 100 is ", total))
+```
+
+### break statement
+
+#### Sum of all numbers above 2 and between 14
+
+```{r}
+sum = 0
+number = 5
+while(number>0){
+  if(number - 2 == 0){
+    break
+  }
+  sum = sum + number
+  number = number - 1
+}
+print(paste("The sum is now ", sum))
+```
+
+### for loop
+
+for(variables in a sequence) {
+  execute some expressions
+}
+
+```{r}
+val = c(20,35,111,22,34,47,89, 96)
+for(value in val){
+  print(value)
+}
+```
+
+We can also use for loop with list, dataframe and matrix. We can use **break** statement with **for** loop.
+
+### next statement
+
+Using this statement, we can skip an iteration of a loop when a certain condition is met.
+
+Suppose we want to print all the odd numbers in the vector **values**.
+
+```{r}
+numbers = c(22,77,90,86,37,113,25, 67,78,90,12,1)
+for(value in numbers){
+  if(value %% 2 == 0){
+    next
+  }
+  print(value)
+}
+```
+
+#### A different way to use for loop
+
+```{r}
+numbers = c(22,77,90,86,37,113,25, 67,78,90,12,1)
+for(i in 1:length(numbers)){
+  print(paste("Value number ",i, "is", numbers[i]))
+}
+```
+
+### Functions
+
+#### You provide input and output is calculated
+
+Function allows to automate our code by matching input with provided arguments.
+
+R does argument matching by both position and by name
+
+```{r}
+numbers = c(22,77,90,86,37,113,25, 67,78,90,12,1)
+?hist
+hist(numbers)
+hist(x=numbers)
+```
+
+We can find out all the arguments of a function by using **args()** function
+
+```{r}
+args(hist)
+```
+
+#### Optional argument-- we provide the default value of the argument
+
+```{r}
+power_function = function(x, power = 2){
+  x^power
+}
+power_function(3, 5)
+```
+
+```{r}
+power_function(2)
+```
+
+
+### apply family: apply, sapply, tapply
+
+```{r}
+information = list(name = c("Aailiya", "Aayan", "Nibir", "Raffian"),
+              age = c(4, 4, 5, 4),
+              sex = c("Female", "Male", "Male", "Female"))
+information
+```
+
+Let's check the class of each list element
+
+```{r}
+for(element in information) {
+  print(class(element))
+}
+```
+
+### lapply()
+
+**lapply()** applies function to each element of a list or vector and returns a list
+
+```{r}
+lapply(information, class)
+```
+
+To return this as a vector, wrap the previous call inside **unlist()** in the following way:
+
+```{r}
+unlist(lapply(information, class))
+```
+
+
+### Dollar to taka
+
+```{r}
+dollar = list(5643, 6456, 8542, 1343, 5439)
+convert = function(x){
+  x * 78
+}
+bd_taka = lapply(dollar, convert)
+unlist(bd_taka)
+```
+
+### tapply
+
+Very useful for summarizing data by group or category.
+
+```{r}
+# example taken from https://www.r-bloggers.com/r-function-of-the-day-tapply-2/
+medical.example =
+    data.frame(patient = 1:100,
+               age = rnorm(100, mean = 60, sd = 12),
+               treatment = gl(2, 50,
+                 labels = c("Treatment", "Control")))
+
+summary(medical.example)
+
+# Get average age of treatment and control group
+tapply(medical.example$age, medical.example$treatment, mean)
+```
+
+
+### Anonymous function
+
+```{r}
+arrival_time = c("5:53:26", "12:51:21", "11:29:53", "1:48:41")
+time = strsplit(arrival_time, split = ":")
+#Select hour
+unlist(lapply(time, function(x) {x[[1]]}))
+```
+
+### sapply()
+
+**sapply** stands for simplify apply and is used with list or vector which tries to convert list to array
+
+```{r}
+books = c("Intro to Data Science", "Environment and Earth Observation", "Introduction to Remote Sensing", "Options, Futures and Other Derivatives", "Python Algorithms")
+sapply(books, nchar)
+#returns a one dimensional array
+sapply(books, nchar, USE.NAMES = FALSE)
+```
+
+### Returning multiple values in a function
+
+#### calculating the highest digit in a number and the sum of digits of a number
+
+```{r}
+dollar = list(5643, 6456, 8542, 1343, 5439)
+sum_largest = function(number) {
+  numbers = as.numeric(unlist(strsplit(as.character(number), split="")))
+  c(sum = sum(numbers), largest = max(numbers))
+}
+
+sum_largest(4500)
+sapply(dollar, sum_largest)
+```
+
+If the vectors to be returned are not of the same length, sapply returns a list. 
+
+### seq()    append()    rev()
+
+```{r}
+dat1 = seq(12, 50, 2)
+dat1
+dat2 = seq(50,12,-2)
+dat2
+dat7 = append(dat1, dat2)
+dat7
+```
+
+### Regular Expressions
+
+#### grepl()
+
+**grepl()** returns TRUE when a pattern is matched in a character string
+
+```{r}
+items = c("Pen", "Pencil", "Book", "Phone","Cycle")
+```
+
+**grepl(pattern = pattern, x = string)**
+
+```{r}
+grepl(pattern = "cy", x = items)
+```
+
+### Times and Dates
+
+```{r}
+Sys.Date()
+```
+
+```{r}
+class(Sys.Date())
+```
+
+```{r}
+Sys.time()
+```
+
+```{r}
+class(Sys.time())
+```
+
+#### reading Date Object
+
+```{r}
+arbDay = as.Date("2023-11-13")
+class(arbDay)
+#The below line will throw an error
+#birthday = as.Date("1985-27-07")
+arbday2 = as.Date("1995-14-03", format = "%Y-%d-%m")
+class(arbday2)
+```
+
+### POSIXct object
+
+```{r}
+result_day = as.POSIXct("2005-04-17 14:27:14")
+result_day
+```
+
+```{r}
+result_day2 = as.POSIXct("2003-11-03 10:21:13", format="%Y-%m-%d %H:%M:%S")
+result_day2
+```
+
+
+We can do arithmetic opearations on dates.
+
+R stores dates as numeric number. This number is the number of days from January 1, 1970 for Date object or the number of seconds from the start of midnight of January 1, 1970 for POSIXct object.
+
+```{r}
+result_day - result_day2
+```
+
+
+### Scoping rules
+
+R follows lexical scoping that is the values of free variables are looked up for in the environment in which the function is defined.
+
+```{r}
+power_function = function(a){
+  power = function(x) {
+    x^a
+  }
+  power
+}
+#power_function
+square = power_function(2)
+cube = power_function(3)
+square(4)
+cube(4)
+```
+
+#### Profiling -- performance analysis -- how much time is it taking to run different parts of the program
+
+**system.time()**
+

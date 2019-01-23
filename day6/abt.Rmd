@@ -1,0 +1,111 @@
+---
+title: "AB testing"
+author: "Shammunul Islam"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### A/B testing
+
+A/B testing is a simple design and analysis of experiment. 
+
+In an experiment, 3 major things need to be present:
+
+* Randomization -- any variability coming from outside is even out between treatment groups
+* Replication -- to capture variability
+* Blocking -- creating groups that have small difference within groups and large difference across groups
+
+### The length of the experiment
+
+We will use **powerMediation** package in R to determine the sample size for proportion testing for A/B testing. 
+
+Suppose our aseline proportion is 0.3 and we expect it to increase y two folds to 0.6, alpha is 5% and power of the test is 80%. What sample size will e required to detect this effect? Here, we are considering equal allocation between treatment and control group.
+
+```{r}
+library(powerMediation)
+(sample_n = SSizeLogisticBin( p1 = 0.3,
+                              p2 = 0.35,
+                              B = 0.5,
+                              alpha = 0.01,
+                              power = 0.8))
+```
+
+We will need 84 observations in total and 42 observations for treatment and 42 observations for control group.
+
+```{r}
+library(tidyverse)
+library(broom)
+logistic = read.csv("logistic.csv")
+logistic %>%
+  group_by(Ad) %>%
+  summarize(success = mean(Purchased))
+```
+
+Run a logistic regression
+
+```{r}
+glm(Purchased ~ Ad, family = "binomial", data = logistic) %>%
+  tidy()
+```
+
+### Be mindful of confounding variables.
+
+Confounding variables could be both internal and external.
+
+### Be mindful of side effect also.
+
+### Within group and between group
+
+* Within group -- if each participant is tested with both control and treatment
+* Between group -every participant is exposed to only one of the treatment or control
+
+
+### Types of A/B testing
+
+* A/B -- compares only two conditions
+* A/A -- compare two groups of control (test control condition)
+* A/B/N -- compare control against multiple control groups
+
+### t-test for quantitative response variable 
+
+We can use t-test when we have continuous response variable.
+
+```{r}
+logistic$time = c(rnorm(42, 190, 80), rnorm(42, 100, 20))
+```
+
+```{r}
+t.test(time ~ Ad, data = logistic)
+```
+
+### Sequential A/B testing
+
+In this process, we test for significance repeatedly over time. For each step of the data collection, either we stop data collection and either reject or not reject the null hypothesis or we continue data collection.In this case, we adjust p-value for checking significance at various levels. 
+
+We can use gDesign() function from gDesign package to use a sequential A/B testing.  5 arguments in gsDesign:
+
+* k - numnber of tyimes we want to look at data 
+* test.type - 1 sided or 2 sided test, numeric value has to be provided 
+* alpha - 0.05 
+* beta - 0.2 (Power = 1 - beta) - probability of type 2 error 
+* sfu - function updating p-values
+
+```{r}
+library(gsDesign)
+stopping_design = gsDesign(k = 4, test.type = 1, alpha = 0.05, beta = 0.2, sfu = "Pocock")
+```
+
+Suppose we are willing to collect at most 300 data points. Then the stopping points for test can be found as follows:
+
+```{r}
+max_willing = 3000
+max_per_group = max_willing / 2
+stopping_points = max_per_group * stopping_design$timing
+stopping_points
+```
+
+
+

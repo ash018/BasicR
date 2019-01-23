@@ -1,0 +1,309 @@
+---
+title: "Cleaning Data in R"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Cleaning data
+
+In this part of the training, we will cover
+
+* Tidy and untidy data
+* Long and wide data
+* Converting long to wide and vice versa
+* Unite and separate columns
+* String to time conversion
+* Working with strings
+* Working with missing data
+
+```{r}
+setwd("E:/Training_S/Cleaning Data in R")
+data1 = read.csv("retail.csv", header = TRUE,  sep=";", stringsAsFactors=FALSE)
+head(data1)
+```
+
+#### Understand your data
+
+```{r}
+class(data1)
+```
+
+#### How many rows and columns in the dataset?
+
+```{r}
+dim(data1)
+```
+
+#### Column names?
+
+```{r}
+names(data1)
+```
+
+#### Understanding our data
+
+```{r}
+str(data1)
+```
+
+#### We can also use **dplyr** package
+
+```{r}
+library(dplyr)
+glimpse(data1)
+```
+
+We can also use **summary()** function
+
+```{r}
+summary(data1)
+```
+
+### Tidy data
+
+* Observations in rows
+* Variables in columns
+* Every table represents any one type of observational unit
+
+![](cld_1.png)
+
+### Untidy data
+
+We have values as column names.
+
+![](cld_2.png)
+
+### Wide dataset vs long dataset
+
+In wide dataset we have more columns than rows, in long dataset, we have more rows than columns
+
+#### So among the 2 datasets that you have seen, which one is wide and which one is long?
+
+### Using tidyr
+
+**gather(data, key, value, ...)**
+
+**data** is a dataframe
+**key** is name of a new column
+**value** is the name of a new value column
+**...** is the names of the columns to gather
+
+```{r}
+#setwd("E:/Training_S/Cleaning Data in R")
+data1 = read.csv("data1.csv")
+data1
+```
+
+#### Gathering columns into key-value pairs or going from wide to long using **gather**
+
+```{r}
+library(tidyr)
+data1_long = gather(data1, categories, values, -Name)
+data1_long
+```
+
+We can also write this as **gather(data, aggregated_variable, value, columns_to_gather)**
+
+### Spreading key-value pairs or going from long to wide using **spread()**
+
+```{r}
+data1_wide = spread(data1_long, categories, values)
+data1_wide
+```
+
+**spread(data, key, value)**
+data is the dataframe
+Key is the name of column containiing keys
+value is the name of the column containing values
+
+### Separating columns
+
+**separate(data, col, into)**
+**data** is which dataframe to change
+**col** is the name of the column to separate
+**into** is the character vector of new column names
+
+Let's have a look at a dataset where 2 persons have got 2 different type of treatments at 2 different times. The column **Time** has both year and month embedded in the column with **-** separating (or adding) the values of year and month.
+
+```{r}
+data2 = read.csv("data2.csv", colClasses=c("character","factor","numeric","character"))
+data2
+```
+
+Now let's separate **Time** column into year and month
+
+```{r}
+data2_separated = separate(data2, Time, c("Year", "month"))
+data2_separated
+```
+
+**separate** assumes that we want to separate a column based on some non-alphanumeric values like empty space, period, forward slash or adash. But if our separator is something else, we can mention it in a fourth parameter in **sep=""**.
+
+### Unite columns
+
+We use **unite()** function.
+
+**unite(data, col, ...)**
+data is the dataframe
+col is the new united column name
+... represent the column names to be united
+By default, the sep is **_**
+We can also specify the seperators as sep=""
+
+```{r}
+data2_united = unite(data2_separated, Time, Year, month)
+data2_united
+```
+
+### Converting strings to date
+
+We have a character of dates in the vector **date_string** which **R** doesn't recognize as date.
+
+We can use **ymd()** function from lubridate package
+
+```{r}
+library(lubridate)
+date_string = c("2010-01-27", "2010-12-21", "2012-09-29")
+class(date_string)
+date_date = ymd(date_string)
+class(date_date)
+date_date
+```
+
+**mdy()** function
+
+```{r}
+mdy("July 12, 2017")
+```
+
+**hms()** function
+
+```{r}
+hms("14:34:23")
+```
+
+#### Parsing date_time
+
+```{r}
+ymd_hms("2017/07/12 14.36.59")
+```
+
+#### Working with strings with stringr package
+
+```{r}
+library(stringr)
+```
+
+#### Trim whitespaces in a string
+
+```{r}
+str_trim("    hopefully, you are enjoying this training, are you???     ")
+```
+
+#### Pad string
+
+```{r}
+str_pad("678", width = 6, side="left", pad="0")
+```
+
+We can also check if a particular string is in a character vector
+
+```{r}
+popular_languages = c("R", "Python", "C", "Java")
+r_in_popular_languages = str_detect(popular_languages, "R")
+r_in_popular_languages
+```
+
+Suppose, C++ has replaced C in popularity and C has gone down by 5 or 6 positions. How do we update **popular_languages** vector? We use **str_replace(vector, old_value, new_value)**
+
+```{r}
+popular_languages = str_replace(popular_languages, "C", "C++")
+popular_languages
+```
+
+### Missing values
+
+This is normally represented as **NA** in excel.
+If we import from Excel, the missing data will be **#N/A**
+When we import from SAS/SPSS, the missing data will be .
+In some cases, it can simply be empty string
+
+
+Let's build a dataframe with some **NA** values
+
+```{r}
+data3 = data.frame(Type1 = c(23,34,NA,56,NA,55),
+                   Type2 = c(22, 32,45,NA,76,90))
+data3
+```
+
+#### Does this data have NA values?
+
+```{r}
+any(is.na(data3))
+is.na(df)
+```
+
+#### How many NAs?
+
+```{r}
+sum(is.na(data3))
+```
+
+#### Indices of missing value
+
+```{r}
+which(is.na(data3$Type1))
+```
+
+
+We can also use **summary()** function to get idea about NAs.
+
+#### Find rowws of missing data
+
+```{r}
+complete.cases(data3)
+```
+We can now subset our data to get only the rows with non-missing values
+
+```{r}
+data3[complete.cases(data3), ]
+```
+
+More comfortable though, is the use of **na.omit(dataframe)**
+
+```{r}
+na.omit(data3)
+```
+
+#### Is our data OK?
+
+```{r}
+set.seed(0)
+data4 = c(rnorm(125, mean=20, sd=3),5, 40)
+
+boxplot(data4)
+```
+
+We can check for errors that can come from variability in measurement, experimental error, data entry error, intentional error etc.
+
+```{r}
+set.seed(0)
+data5 = data.frame(first=c(rnorm(24, mean=20, sd=3), 100),
+                   second = rnorm(25, mean=30, sd=5),
+                   third = rnorm(25, mean=40, sd=15))
+summary(data5$first)
+hist(data5$first, breaks=5)
+```
+
+We can also look at the box plot of all the columns
+
+```{r}
+boxplot(data5)
+```
+

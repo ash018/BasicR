@@ -1,0 +1,299 @@
+---
+title: "Exploratory Data Analysis and Basic statistics"
+author: "Shammunul Islam"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Exploratory Data Analysis and Basic statistics
+
+```{r, echo = FALSE}
+library(tidyverse)
+```
+
+We will work with data from different restaurants of Dhaka. The dataset **restaurants** has 4 columns and each row gives the data on restaurant location, service quality, price of buffet and average rating price by customers.
+
+```{r}
+restaurants = read.csv("restaurants.csv")
+str(restaurants)
+```
+
+### Factors
+
+```{r}
+levels(restaurants$Service.Quality)
+```
+
+#### Service quality vs. rating
+
+```{r}
+table(restaurants$Service.Quality, restaurants$Rate)
+```
+
+### Selecting without the very bad ones
+
+```{r}
+restaurants2 = restaurants %>%
+  filter(Rate == "Very  Bad")
+```
+
+Let's check the levels of Rate
+
+```{r}
+levels(restaurants2$Rate)
+```
+
+We see that Very Bad is still there in the levels. To drop this, we need to use **droplevels()**.
+
+```{r}
+restaurants2 = restaurants %>%
+  filter(Rate == "Very  Bad") %>%
+  droplevels()
+```
+
+Now, let's make a side-by-side barchart of rate segregated by area.
+
+```{r}
+ggplot(restaurants, aes(x = Rate, fill = Area)) + 
+  geom_bar(position = "dodge")
+```
+
+This color range doesn't look good on this barchart. Let's change the color palette.
+
+```{r}
+library(RColorBrewer)
+col = brewer.pal(8, "Pastel2")[3:8]
+ggplot(restaurants, aes(x = Rate, fill = Area)) + 
+  geom_bar(position = "dodge") +
+  scale_fill_brewer(palette="Pastel2")
+```
+
+### Proportion table
+
+```{r}
+quality_vs_rate = table(restaurants$Service.Quality, restaurants$Rate)
+prop.table(quality_vs_rate)
+```
+
+We see that this gives the proportion with respect to total count.
+
+If we want to know this proportion of rating among different levels of quality of services, we can then do following:
+
+```{r}
+prop.table(quality_vs_rate, 1)
+```
+
+Now, if we want to know the proportion of quality of services among different levels of rating, we do the following:
+
+```{r}
+prop.table(quality_vs_rate, 2)
+```
+
+We can also look at this using bar plot in the following way:
+
+```{r}
+ggplot(restaurants, aes(x=Service.Quality, fill = Rate)) +
+  geom_bar(position = "fill") +
+  ylab("Proportion")
+```
+
+Now, let's have a look at whether this pattern remains constant over different areas:
+
+```{r}
+fill1 = brewer.pal(9, "PuBuGn")[7]
+fill2 = brewer.pal(12, "Set3")[7]
+fill3 = brewer.pal(12, "Set3")[c(1,3)]
+#fill4 = brewer.pal(12, "Set3")[8]
+fill = c(fill1, fill2, fill3)
+restaurants$Rate = factor(restaurants$Rate, 
+                       levels = c("Very Bad", "Bad", "Good", "Very Good"))
+ggplot(restaurants, aes(x=Service.Quality, fill = Rate)) +
+  geom_bar(position = "fill") +
+  ylab("Proportion") +
+  xlab("Service quality") +
+  facet_wrap(~Area) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_fill_manual(values=fill)
+```
+
+### Exploring numerical data
+
+```{r}
+str(mtcars)
+mtcars$cyl = factor(mtcars$cyl)
+```
+
+#### Dotplot
+
+```{r}
+ggplot(mtcars, aes(x=wt)) +
+  geom_dotplot()
+```
+
+#### Histogram
+
+```{r}
+ggplot(mtcars, aes(x=wt)) +
+  geom_histogram()
+```
+
+#### Faceted histogram
+
+```{r}
+ggplot(mtcars, aes(x=mpg)) +
+  geom_histogram() +
+  facet_wrap(~cyl)
+```
+
+
+#### Density plot
+
+```{r}
+ggplot(mtcars, aes(x=wt)) +
+  geom_density()
+```
+
+### Box plot
+
+```{r}
+ggplot(mtcars, aes(y=mpg)) +
+  geom_boxplot()
+```
+
+#### Box plot of mpg for different cylinder
+
+```{r}
+ggplot(mtcars, aes(x = cyl, y=mpg)) +
+  geom_boxplot()
+```
+
+### Measure of central tendency
+
+* Mean -- average value -- mean()
+
+```{r}
+duration = faithful$eruptions
+mean(duration)
+```
+
+* Median -- the value which divides the data in 2 parts -- median()
+
+When we are working with skewed distribution, median gives us a better estimate of central tendency than mean.
+
+```{r}
+duration = faithful$eruptions
+median(duration)
+```
+
+
+* Mode -- the most frequently observed value -- no default function in base R
+
+```{r}
+names(table(duration))[table(duration)==max(table(duration))]  
+```
+
+Unimodal, bimodal, multimodal etc.
+
+### Measure of dispersion
+
+* Range -- difference between lowest and highest value -- range()
+
+```{r}
+range(duration)
+```
+
+* Interquartile range -- difference between 3rd and 1st quartile -- IQR()
+
+```{r}
+IQR(duration)
+```
+
+
+
+* Standard deviation -- average distance between each quantity and mean -- sd()
+
+![](C:/Users/ERI/bs_0_0.png)
+
+```{r}
+sd(duration)
+```
+
+* Variance -- square of average distance between each quantity and mean -- var()
+
+![](C:/Users/ERI/bs_0_1.png)
+
+```{r}
+var(duration)
+```
+
+* Quartiles -- divides data into quarters -- quantile()
+
+```{r}
+duration = faithful$eruptions
+quantile(duration)
+```
+
+
+* Skewness -- asymmetry of probability distribution
+
+![](C:/Users/ERI/bs_1.png)
+
+```{r}
+library(e1071)
+duration = faithful$waiting
+skewness(duration)
+```
+
+Negative value indicates that it is negatively skewed.
+
+* Kurtosis -- whether our data is heavy-tailed (many outliers) or light-tailed (very few outliers) relative to a normal distribution.
+
+![](C:/Users/ERI/bs_2.png)
+
+```{r}
+kurtosis(duration)
+```
+
+Negative value indicates that it is platykurtic.
+
+#### Shape of the distribution
+
+```{r}
+library(ggplot2)
+data(iris)
+ggplot(iris, aes(Sepal.Width, fill = Species)) +
+  geom_density(alpha = 0.35)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

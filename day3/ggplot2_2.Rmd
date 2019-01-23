@@ -1,0 +1,354 @@
+---
+title: "Chapter 5: Data Visualization in R"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### ggplot2
+
+**ggplot2** is a wonderful graphical package for R developed by Hadley Wickham.
+
+We will explore ggplot2 here and now will work with **mtcars** dataset which has information about 32 cars from 1973 Motor Trend magazine.
+
+</br>Let's explore mtcars dataset first.
+
+```{r, message=FALSE, warning=FALSE}
+# Load the ggplot2 package
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Explore the mtcars data frame with str()
+str(mtcars)
+```
+
+Our first ggplot2 command:
+
+```{r, fig.width=6, fig.height=2.5}
+# Execute the following command
+ggplot(mtcars, aes(x = cyl, y = hp)) +
+  geom_point()
+```
+
+
+Here, cyl is treated as a numerical variable. Now, we will treat **cyl** as factor variable and see what difference it makes.
+
+```{r, fig.width=6, fig.height=2.5}
+# To treat cyl as a factor
+ggplot(mtcars, aes(x = factor(hp), y = mpg)) +
+  geom_bar()
+```
+
+#### ggplot2 has 3 main components: data, aesthetics and geom layers (and also facets).
+
+```{r, fig.width=6, fig.height=2.5}
+#Making a scatter plot
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point()
+```
+
+```{r, fig.width=6, fig.height=2.5}
+#scatter plot of cyl vs hp with the points colored by the value of disp
+ggplot(mtcars, aes(x = wt, y = mpg, color = disp)) +
+  geom_point()
+```
+
+```{r, fig.width=6, fig.height=2.5}
+# We can also show scatter plot according to the size of a third variable
+ggplot(mtcars, aes(x = wt, y = mpg, size = disp)) +
+  geom_point()
+```
+
+
+Iris data set gives the measurements in centimeters of the variables sepal length and width and petal length and width, respectively, for 50 flowers from each of 3 species of iris. The species are Iris setosa, versicolor, and virginica.
+
+![](C:/Users/ERI/ggp_2.png)
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_jitter(alpha = 0)
+```
+
+```{r, fig.width=6, fig.height=2.5}
+#We can also plot the mean in the scatter plot
+ggplot(iris, aes(x = Species, y = Sepal.Width)) + 
+  geom_point() + 
+  stat_summary(geom = "point", fun.y = "mean", colour = "red", size = 4)
+```
+
+```{r, fig.width=6, fig.height=2.5}
+#We can also do this by the following command
+ggplot(iris, aes(x = Species, y = Sepal.Width)) + 
+  geom_point() + 
+  geom_point(stat = "summary", fun.y = "mean", colour = "red", size = 4)
+```
+
+#### Facets
+
+```{r, fig.width=8, fig.height=5}
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_jitter(alpha = 0.9) +
+  facet_grid(. ~ Species )
+```
+
+#### statistics layer
+
+```{r, fig.width=6, fig.height=2.5}
+# se = TRUE shows the confidence interval
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_jitter(alpha = 0.9) +
+  facet_grid(. ~ Species) +
+  stat_smooth(method = "lm", se = TRUE, col = "red")
+```
+
+#### Coordinates layer
+
+```{r, fig.width=6, fig.height=2.5}
+levels(iris$Species) = c("Virginica","Setosa", "Versicolor" )
+#	expand is a numeric vector of length two specifies how far the data is placed some distance away from the axes. 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_jitter(alpha = 0.6) +
+  facet_grid(. ~ Species) +
+  stat_smooth(method = "lm", se = TRUE, col = "blue")+
+  scale_y_continuous("Sepal width (in cm)",
+                     limits= c(2, 5),
+                     expand = c(0, 0.6)) +
+  scale_x_continuous("Sepal Length (in cm)",
+                     limits = c(4, 8),
+                     expand = c(0, 0.1)) +
+  coord_equal()
+```
+
+#### We can store ggplot2 plot as an object and we can provide aesthetic argument color inside geom_point() layer.
+
+Thus, we can also provide x and y argument in the **geom_point()** layer
+
+```{r, fig.width=6, fig.height=2.5}
+q1 = ggplot(diamonds)
+q1 + geom_point(alpha = 0.4, aes(color = clarity, x = carat, y = price))
+```
+
+#### Regression fit for each of the species type.
+
+```{r, fig.width=6, fig.height=2.5}
+q2 = ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) 
+q2 = q2 + geom_point(alpha = 0.4)
+q2 + geom_smooth(se = FALSE, method = "lm")
+
+q2_2 = ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width))
+q2_2 + geom_smooth(aes(col = Species), method = "lm")
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
+  geom_jitter(alpha = 0.6)+ geom_smooth(se = FALSE, method = "lm")
+```
+
+Colour, size and shapes are normally considered as aesthetics but ggplot2 consider these as attributes. In ggplot2, aesthetics refer to which variables are mapped into. When we wrote **color = Species**, we were mapping Species on color.
+
+Aesthetics in aes() and attributes in geom_(). We can also call aesthetics in geom_(). The latter is done when we have different data sources.
+
+### Common aesthetics used in ggplot2
+
+</br>
+![](C:/Users/ERI/ggp_3.png)
+
+</br>
+
+Let's change the shape and size
+
+```{r, fig.width=6, fig.height=2.5}
+
+ggplot(diamonds, aes(x = carat, y = price, color = clarity)) +
+  geom_point(shape = 1, size = 1)
+```
+
+```{r, fig.width=6, fig.height=2.5}
+# cut mapped to color
+ggplot(diamonds, aes(x = carat, y = price, color = cut)) +
+  geom_point(shape = 1, size = 1)
+```
+
+Please note that **color** aesthetic changes the outside outline of an object while **fill** aesthetic changes the inside shading.
+
+Below is a graphical representation of all the shapes available in ggplot2.
+
+![](C:/Users/ERI/ggp_4.png)
+
+#### Use of shape - 21
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(mtcars, aes(x = wt, y = mpg, fill=cyl, col = am)) +
+  geom_point(shape = 21, size = 4, alpha = 0.6)
+```
+
+Note: **label** and **shape** are only applicable to categorical data
+
+Each of the aesthetic that we mapped onto is a scale. We can access these scales with the following functions:
+
+![](C:/Users/ERI/ggp_5.png)
+
+</br>
+
+#### To change the axis labels, use **labs()**
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(iris, aes(Sepal.Length, Sepal.Width, col = Species)) +
+  geom_point(position = "jitter") +
+  labs(x = "Sepal Length", y = "Sepal Width", col = "Species")
+```
+
+#### geom_bar()
+
+#### aes() inside geom_()
+
+```{r, fig.width=6, fig.height=2.5}
+#scatterplot with alpha 0.5
+ggplot(mtcars, aes(x = wt, y = mpg, fill = cyl)) + geom_point(alpha= 0.5)
+```
+
+```{r, fig.width=6, fig.height=2.5}
+#scatterplot with alpha 0.5
+ggplot(mtcars, aes(x = wt, y = mpg)) + 
+  geom_point(alpha= 0.5, aes(fill = cyl))
+```
+
+### Adding layers
+
+#### We can add another data layer with mean to the original mtcars dataset.
+
+```{r, fig.width=6, fig.height=2.5}
+mtcars$cyl = factor(mtcars$cyl)
+mtcars_mean = aggregate(mtcars[c(1,3,4,6)], list(mtcars$cyl), mean)
+names(mtcars_mean)[1] = "cyl"
+
+ggplot(mtcars, aes(x = wt, y = mpg, col = cyl)) + 
+  #The below geom_point() inherits data and aesthetics from above ggplot()
+  geom_point() +
+
+  geom_point(data = mtcars_mean, shape = 21, size = 7, fill = "#D55E0030")
+
+```
+
+
+
+#### Regions with high density
+
+```{r, fig.width=6, fig.height=2.5}
+diamonds$cut = factor(diamonds$cut)
+ggplot(diamonds, aes(x = carat, y = price, color = cut)) +
+  geom_jitter(alpha = 0.3)
+```
+
+```{r, fig.width=6, fig.height=2.5}
+#we can also use hollow circle
+ggplot(diamonds, aes(x = carat, y = price, color = cut)) +
+  geom_jitter(shape = 1)
+```
+
+### Bar plots
+
+#### Histogram (for continuous variable)
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(diamonds, aes(price)) +
+  geom_histogram()
+```
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(diamonds, aes(price)) +
+  geom_histogram(bins = 100)
+```
+
+#### Histogram of density
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(diamonds, aes(price)) +
+  geom_histogram(aes(y = ..density..), bins = 100)
+```
+
+Note that we have used .. before and after density to indicate that this density is stored in an internal dataframe.
+
+#### Bar plot
+
+```{r, fig.width=6, fig.height=2.5}
+#How many diamonds are there for each cut
+ggplot(diamonds, aes(cut)) + geom_bar()
+```
+
+```{r, fig.width=6, fig.height=2.5}
+#same as 
+ggplot(diamonds, aes(cut)) + geom_bar(stat = "count", fill = "#FF6666")
+```
+
+
+#### Overlapping bar plots
+
+```{r, fig.width=6, fig.height=2.5}
+dodge_manual = position_dodge(width = 0.3)
+ggplot(diamonds, aes(cut, fill = clarity)) +
+  geom_bar(position = dodge_manual, alpha = 0.7)
+```
+
+#### Frequency polygon
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(mtcars, aes(mpg, col = cyl)) +
+  geom_freqpoly(position = "identity", binwidth = 1)
+```
+
+#### Using different color palettes
+
+```{r, fig.width=6, fig.height=2.5}
+ggplot(diamonds, aes(x = cut, fill = color)) +
+  geom_bar() +
+  scale_fill_brewer(palette = "Set1")
+```
+
+```{r, fig.width=6, fig.height=2.5, message=FALSE, warning=FALSE}
+library(RColorBrewer)
+buGn = brewer.pal(9, "Pastel1")[1:7] # from the RColorBrewer package
+color_palette = colorRampPalette(buGn)
+ggplot(diamonds, aes(x = cut, fill = color)) +
+  geom_bar() +
+  scale_fill_manual(values = color_palette(7))
+```
+
+### manually providing color palette
+
+We have a dataset which is the collection of a survey result that questioned about the freedom of speech enjoyed by people in 4 different regions, namely, East, West, North and South regions of Bangladesh. First, import the dataset opinion.csv.
+
+```{r}
+opinion = read.csv("opinion.csv")
+str(opinion)
+```
+
+Now, let's make a stacked bar chart:
+
+```{r}
+
+ggplot(opinion, aes(Location, fill=Freedom)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = brewer.pal(8, "Set2")[c(1:3, 7)])
+```
+
+
+#### qplot
+
+```{r, fig.width=6, fig.height=2.5, message=FALSE, warning=FALSE}
+#In ggplot2
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point()
+```
+
+```{r, fig.width=6, fig.height=2.5}
+#with qplot()
+qplot(carat, price, data = diamonds)
+```
+
+```{r, fig.width=6, fig.height=2.5}
+#I() stands for inhibit -- not as a variable for the aesthetic but as a value for the attribute
+qplot(carat, price, data = diamonds, col = cut, geom = "jitter", alpha = I(0.5))
+```
+

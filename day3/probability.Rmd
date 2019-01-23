@@ -1,0 +1,189 @@
+---
+title: "Probability"
+author: "Shammunul Islam"
+date: "September 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Probability theory
+
+In probability theory, an experiment or trial (see below) is any procedure that can be infinitely repeated and has a well-defined set of possible outcomes, known as the sample space.[1] An experiment is said to be random if it has more than one possible outcome, and deterministic if it has only one. A random experiment that has exactly two (mutually exclusive) possible outcomes is known as a Bernoulli trial (from Wikipedia).
+
+A Bernoulli random variable has two possible outcomes: 0 or 1. A binomial distribution is the sum of independent and identically distributed Bernoulli random variables.
+
+an event is a set of outcomes of an experiment (a subset of the sample space) to which a probability is assigned
+
+### Binomial distribution in R
+
+**rbinom(number of draws, number of coins in each draw, probability of head)**
+
+#### Bernoulli
+
+Let's flip a coin once
+
+```{r}
+set.seed(111)
+rbinom(1, 1, 0.5)
+```
+
+#### Binomial
+
+```{r}
+set.seed(123)
+rbinom(10, 1, 0.5)
+```
+
+```{r}
+set.seed(123)
+rbinom(10, 10, 0.5)
+```
+
+### Density
+
+It is the probability of getting a specified number of success in a number of events with a specified probability of success?
+
+```{r}
+results = rbinom(100000, 5, 0.5)
+mean(results == 2)
+```
+
+Or, we can use
+
+**dbinom(the outcome for which we are calculating density, number of coins, probability of success)**
+
+```{r}
+dbinom(2, 5, 0.5)
+```
+
+### Normal distribution
+
+As we flip more and more, we approximate towards normal distribution.
+
+```{r}
+hist(rbinom(100000, 5, 0.5))
+```
+
+
+```{r}
+hist(rbinom(100000, 10, 0.5))
+```
+
+```{r}
+hist(rbinom(100000, 500, 0.5))
+```
+
+When we draw from binomial with a very large size, the result looks more and more like a normal distribution.
+
+### Normal approximation to binomial
+
+mu = size.p
+sigma^2 = size * p * (1 - p)
+
+**rnorm(Number of iteration, mu, sigma)**
+
+### Task: Approximate the binomial by Normal distribution
+
+### Poisson distribution -- Large n and samll p, good for modeling rare events
+
+```{r}
+rbinom(100000, 1000, 1/1000)
+```
+Or,
+
+```{r}
+rpois(1000, 1)
+```
+
+### Density -- what is the exact probability of a fixed number of draw for Poisson(3)?
+
+```{r}
+dpois(3, 2)
+```
+
+
+### Testing change in proportion
+
+```{r}
+library(dplyr)
+val = data.frame(
+  admission = c(rep("admitted", 35), rep("not_admitteted", 13)),
+              race = c(rep("white", 21), rep("black", 14), rep("white", 3), rep("black", 10)))
+val %>% 
+  group_by(race) %>%
+  summarize(admittedd_prop = mean(admission == "admitted"))
+```
+
+
+The difference in proportion is approximately 0.29
+
+
+```{r}
+rep_sample_n <- function(tbl, size, replace = FALSE, reps = 1)
+{
+    n <- nrow(tbl)
+    i <- unlist(replicate(reps, sample.int(n, size, replace = replace), 
+                          simplify = FALSE))
+
+    rep_tbl <- cbind(replicate = rep(1:reps,rep(size,reps)), tbl[i,])
+
+    dplyr::group_by(rep_tbl, replicate)
+}
+# Sample the entire data frame 5 times
+val %>%
+  rep_sample_n(size = nrow(disc), reps = 5) 
+```
+
+```{r}
+# Shuffle the admission variable within replicate. 
+val %>%
+  rep_sample_n(size = nrow(val), reps = 5) %>%
+  mutate(adm_perm = sample(admission)) 
+```
+
+
+Using rep_sample_n(), we do 5 repeated samples (i.e. Replications) of the val data, then shuffled them using sample() to break any links between race and admission. Then for each replication, you calculated the proportions of admitted whites and blacks in the dataset along with the difference in proportions.
+
+```{r}
+# Create data frame of differences in admission rates
+disc_perm <- val %>%
+  rep_sample_n(size = nrow(disc), reps = 1000) %>%
+  mutate(adm_perm = sample(admission))  %>%
+  group_by(replicate, race) %>%
+  summarize(prop_adm_perm = mean(adm_perm == "admitted"),
+            prop_adm = mean(admission == "admitted")) %>%
+  summarize(diff_perm = diff(prop_adm_perm),
+            diff_orig = diff(prop_adm))  # white - black
+
+library(ggplot2)
+# Histogram of permuted differences
+ggplot(disc_perm, aes(x = diff_perm)) + 
+  geom_histogram(binwidth = 0.01) +
+  geom_vline(aes(xintercept = diff_orig), col = "red")
+```
+
+### Quantile measurement
+
+```{r}
+disc_perm %>%
+  summarize(q.05 = quantile(diff_perm, p = 0.05),
+            q0.95 = quantile(diff_perm, p = 0.95))
+```
+
+
+
+We see that observed difference  of 0.29 is higher than 95% quantile of the null distribution indicating that htere is a ctually a difference in admission rate between races.
+
+
+
+
+
+
+
+
+
+
+

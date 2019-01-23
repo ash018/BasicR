@@ -1,0 +1,362 @@
+---
+title: "Importing Data"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data import
+
+Flat files are simple files that display data in tables. csv files are flat files. </br>
+
+![](1.png)
+
+</br>
+utils package in R contain the functionalities for importing csv files into r. We don't have to import utils package as it is loaded by default.
+
+
+```{r, echo=FALSE}
+setwd("D:/Training_JU/Training/3_Importing Data in R")
+```
+
+```{r}
+airStations = read.csv("airStations.csv", header = TRUE,  sep=";", stringsAsFactors=FALSE)
+str(airStations)
+airStations
+```
+
+We can also use **read.csv2** function to read ; separated file
+
+```{r}
+airStations = read.csv2("airStations.csv", stringsAsFactors=FALSE)
+str(airStations)
+airStations
+```
+
+
+For **read.csv()**, by default, header=TRUE and sep=","
+
+If the file is inside another directory data, then we can do following things
+**path = file.path("~", "datasets", "states.csv")**
+**read.csv(path, stringsAsFactors=FALSE)**
+
+To have a look at all the files in the directory, use **dir()**
+
+
+We also come across tab-delimited files. We read these with **read.delim()** function.
+
+```{r}
+values = read.delim("countryValues.txt", stringsAsFactors = FALSE)
+str(values)
+head(values, 3)
+```
+
+If the txt file didn't contain column names, we can specify them by using **col.names=c("Year", "Country", "Value")** inside **read.delim()** function.
+
+For **read.delim()**, the default is **header = TRUE**, **sep = "\t"**
+
+Now suppose the values are given with backslash '/' as the separator. We then need to use **read.table()** function.
+
+![](2.png)
+
+Here we have countryValues2.txt as '/' separated file. Let's import it.
+
+```{r}
+values2 = read.table("countryValues2.txt", header = TRUE,  sep="/", stringsAsFactors=FALSE)
+str(values2)
+head(values2, 3)
+```
+
+We can also use read.table to read tab-delimited file by specifying **sep="\t"**
+
+Select the year with highest and highest value
+
+```{r}
+highest = values2[which.max(values2$Value), ]
+highest
+```
+
+### Task    
+
+####Select the year with lowest and lowest value?
+
+Now suppose we have the previous tab delimited dataset without any column name and with a new column indicating different states (poor, medium, good, very good) which is categorical in nature. How do we read this data?
+
+Here, we can't just use stringsAsFactors argument to import both character and categorical columns.
+
+```{r}
+values3 <- read.delim("countryValues3.txt", header = FALSE, 
+                       col.names = c("Year", "Country", "Value", "State"),
+                       colClasses = c("numeric", "character", "numeric", "factor"))
+str(values3)
+head(values3, 3)
+```
+
+Please note that if a column is set to "NULL" in the **colClasses** vector, this column will not be loaded into the data frame.
+
+### readr and data.table packages
+
+First, load the package
+
+```{r, message=FALSE, warning=FALSE}
+#install.packages("readr")
+library(readr)
+```
+
+Now, we will read the airstations.csv file with **read_csv()** function of **readr** package
+
+```{r}
+read_csv("airstations.csv")
+```
+
+####We use read_tsv for reading tab-separated file 
+read_tsv(file_name, col_names=vector of column names)
+
+
+###read.table() vs read.delim()
+
+```{r}
+values2 = read.table("countryValues2.txt", header = TRUE,  sep="/", stringsAsFactors=FALSE)
+values2
+#In read_delim, we don't have to mention header and stringsAsFactors
+values2_delim = read_delim("countryValues2.txt", delim="/")
+values2_delim
+```
+
+If column name is absent, we need to say **col_names=FALSE** inside **read_delim()**
+
+```{r}
+values3_delim = read_delim("countryValues4.txt", delim="/",col_names=FALSE)
+values3_delim
+values3_delim2 = read_delim("countryValues4.txt", delim="/",
+                            col_names=c("Year","Country","Value"))
+values3_delim2
+```
+
+We can also specify column types using **col_types**
+
+```{r}
+read_delim("countryValues4.txt", delim="/",
+                            col_names=c("Year","Country","Value"),
+           col_types ="cci")
+```
+
+To skip a column, we can use **_** in **col_types**.
+
+```{r}
+read_delim("countryValues5.txt", delim="/",
+                            col_names=c("Year","Country","Value"),
+           col_types ="cci", skip = 3)
+```
+
+
+Use **nmax** to read a specified number of rows.
+
+```{r}
+read_delim("countryValues5.txt", delim="/",
+                            col_names=c("Year","Value"),
+           col_types ="c_i", skip = 3, n_max=4)
+```
+
+```{r}
+time = col_date()
+fac = col_factor(levels = c("Poor", "Medium", "Good", "Very Good"))
+int = col_integer()
+char = col_character()
+data4=read_tsv("countryValues3.txt",
+                            col_names=c("Year","Country","Value","State"),
+           col_types ="ccic", skip = 0, n_max=5)
+data4
+summary(data4)
+data4_2=read_tsv("countryValues3.txt",
+                            col_names=c("Year","Country","Value","State"),
+           col_types =list(char,char,int,fac), skip = 0, n_max=5)
+data4_2
+summary(data4_2)
+```
+
+###fread() in data.table() package
+
+```{r}
+library(data.table)
+```
+
+We can use fread() to read data both with header and without header in an easier way
+
+```{r}
+fread("airStations2.csv")
+fread("airStations2_withoutHeader.csv")
+```
+
+We can also use other formats and **fread()** somehow guesses the separator and column types. We can also manually mention these inside **fread()**.
+
+```{r}
+fread("countryValues.txt")
+```
+
+We can also select particular columns to import or drop
+
+```{r}
+#Only select first and fourth column
+fread("countryValues6.txt", select=c(1,4))
+#We can also select by column names
+fread("countryValues6.txt", select=c("Year","State"))
+#Similarly, we can drop columns by index and column names
+fread("countryValues6.txt", drop=c(2,3))
+fread("countryValues6.txt", drop=c("Country","Value"))
+```
+
+###Reading Microsoft Excel files readxl package
+
+```{r, message=FALSE, warning=FALSE}
+#install.packages("readxl")
+library(readxl)
+```
+
+####Name of the sheets in the excel file with excel_sheets()
+
+```{r}
+excel_sheets("airStations.xlsx")
+```
+
+####read_excel() is used to read excel file.
+
+**read_excel(filename, sheet = sheetindex or sheetname)**. Note that, if we don't specify sheet here, then the first sheet will be read in.
+
+```{r}
+#without providing sheet argument
+read_excel("airStations.xlsx")
+#reading with sheet index
+read_excel("airStations.xlsx", sheet=2)
+#reading with sheet name
+read_excel("airStations.xlsx", sheet="Economy")
+```
+
+
+###Reading all sheets with a single command
+
+```{r}
+#We will get the data of 3 sheets as three lists eacxh containing the respective dataset
+all_sheets = lapply(excel_sheets("airStations.xlsx"), read_excel, path="airStations.xlsx")
+all_sheets
+```
+
+Let's explore its documentation. Remember, how?
+
+**col_names**, **col_types** and **skip** are some other useful arguments.
+
+```{r}
+#Note that blank in col_types skip the respective column
+read_excel("airStations.xlsx", sheet=3, col_types = c("text","blank","numeric"), 
+           skip = 1, col_names = c("country", "year", "sex-ratio"))
+```
+
+We can also specify the range of values that we want to import using **range** inside **read_excel()**.
+
+```{r}
+#read_excel(path="airStations2.xlsx", range="B1:F11")
+```
+
+We can also mention the highest number of rows to be read using **n_max**.
+
+```{r}
+#read_excel(path="airStations2.xlsx", n_max =10)
+```
+
+We can also mention the range of rows or range of columns separately using **cell_rows()** and **cell_col()** respectively.
+
+```{r}
+#Read only the rows from third upto sixth row
+#read_excel(path="airStations2.xlsx", range = cell_rows(3:6))
+```
+
+Is this what we were expecting?? 
+
+No, let's fix it.
+
+```{r}
+#read_excel(path="airStations2.xlsx", range = cell_rows(3:6), col_names=
+#                                           c("X","Value","Station","lon","lat","alt"))
+```
+
+
+We can also mention the sheetname inside **range**.
+
+```{r}
+#read_excel("airStations.xlsx", range = "Economy!B1:C4")
+```
+
+We can also use **read.xls()** from gdata package. All the arguments of **read.table()** is available for **read.xls()** function. This package first converts an Excel file to a csv file using Perl. This is time consuming for a large excel file.
+
+```{r, message=FALSE, warning=FALSE}
+#install.packages("gdata")
+library(gdata)
+#read.xls("airStations2.xls", sheet="airStations")
+```
+
+###XLConnect package
+
+This is useful if most of our files we work in are in Excel file. We can adapt our calculation sheet to R using this package.
+
+```{r}
+#install.packages("XLConnect")
+#library(XLConnect)
+```
+
+We read sheets using **loadWorkbook()**.
+
+```{r}
+#excel = loadWorkbook("airStations.xlsx")
+#class(excel)
+```
+
+Now let's have a look at all the sheets using **getSheets()**
+
+```{r}
+#getSheets(excel)
+```
+
+####Reading data with **readWorksheet()** function
+
+```{r}
+#readWorksheet(excel, sheet = "airStations")
+#This is similar to read_excel
+```
+
+We can specify starting and ending row and also starting and ending column.
+
+```{r}
+# readWorksheet(excel, sheet = "airStations", startRow=4,
+#               endRow = 10, startCol = 3, endCol = 10,
+#               header = FALSE)
+```
+
+We can create new worksheet and save it in excel working from R.
+
+```{r}
+# tech = data.frame(Country = c("Bangladesh", "China", "India", "USA", "Irreland"), 
+#                                                 Internet = c(34,56,45,76,71))
+# excel = loadWorkbook("airStations.xlsx")
+# #Create a new sheet in excel file
+# createSheet(excel, name = "Tech")
+# #Populate the new worksheet with the value of dataframe tech
+# writeWorksheet(excel, tech, sheet = "Tech")
+# saveWorkbook(excel, file = "airStations_mod.xlsx")
+```
+
+We can also rename sheets using **renameSheet()** function.
+
+```{r}
+# renameSheet(excel, "airStations", "stations")
+# saveWorkbook(excel, file = "data.xlsx")
+```
+
+We can also remove sheet using **removeSheet()**.
+
+```{r}
+# removeSheet(excel, sheet = "economy")
+# saveWorkbook(excel, file = "data2.xlsx")
+```
+

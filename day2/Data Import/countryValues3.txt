@@ -1,0 +1,13 @@
+1920	Bangladesh	2890	Poor
+1930	Bangladesh	3000	Poor
+1940	Bangladesh	4500	Poor
+1950	Bangladesh	2890	Poor
+1960	Bangladesh	3000	Poor
+1970	Bangladesh	8700	Medium
+1980	Bangladesh	1290	Poor
+1990	Bangladesh	15430 	Good
+2000	Bangladesh	9903	Medium
+2010	Bangladesh	13456	Good
+2020	Bangladesh	17000	Very Good
+2030	Bangladesh	15670	Good
+

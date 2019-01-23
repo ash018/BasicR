@@ -1,0 +1,372 @@
+---
+title: "Regression"
+author: "Shammunul Islam"
+date: "October 2, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Modeling in R
+
+### Random variable
+
+A numerical outcome of an experiment.
+
+#### Discrete random variable
+
+A random variable which can take only a fixed number of values.
+
+#### Continuous random variable
+
+A random variable that can take a number of (infinite) values within a range. 
+
+#### Independent random variable
+
+Two random variables X and Y are said to be independent if for any sets I and J, the events {X is in I} and {Y is in J} are independent
+
+#### Expected value
+
+Long-run average value of a random variable. Expected value is not the same as probability. 
+
+Let **X** represent the outcome of a roll of a fair six-sided die. More specifically, **X** will be the number of pips showing on the top face of the die after the toss. The possible values for **X** are 1, 2, 3, 4, 5, and 6, all equally likely (each having the probability of 1/6). The expectation of **X** is
+
+![](C:/Users/ERI/reg_0.png)
+
+What is the expected value of the number of heads if we toss a coin 1000 times?
+
+```{r}
+total = 0
+for(i in 0:1000){
+  total = total + (choose(1000, i) * (0.5^i) * (0.5 ^(1000 - i))) * i 
+  #print(i)
+}
+total
+```
+
+The probability of getting 500 heads in 1000 tossing is
+
+```{r}
+choose(1000, 500) * (0.5^500) * (0.5 ^(1000 - 500))
+```
+
+So expectation is not probability.
+
+#### Covariance
+
+It is a measure of how two random variables vary together.
+
+![](C:/Users/ERI/reg_1.png)
+
+
+If both X and Y are large together or small together, covariance will be positive. If X is large relative to its expected value but Y is small relative to expected value of Y, we have a negative covariance and similarly if X is small relative to E(X) but Y is larger relative to E(Y), we again have negative covariance.
+
+Covariance is used to measure variables that have different units of measurement. By leveraging covariance, researchers are able to determine whether units are increasing or decreasing, but they are unable to solidify the degree to which the variables are moving together due to the fact that covariance does not use one standardized unit of measurement.
+
+### Correlation
+
+Correlation, on the other hand, standardizes the measure of interdependence between two variables and informs researchers as to how closely the two variables move together.
+
+"The problem with covariances is that they are hard to compare: when you calculate the covariance of a set of heights and weights, as expressed in (respectively) meters and kilograms, you will get a different covariance from when you do it in other units (which already gives a problem for people doing the same thing with or without the metric system!), but also, it will be hard to tell if (e.g.) height and weight 'covariate better' than, e.g. the length of your toes and fingers, simply because the 'scale' you calculate the covariance on is different.
+
+The solution to this is to 'normalize' the covariance: you divide the covariance by something that represents the diversity and scale in both the covariates, and end up with a value that is assured to be between -1 and 1: the correlation. Whatever unit your original variables were in, you will always get the same result, and this will also ensure that you can, to a certain degree, compare whether two variables 'correlate' more than two others, simply by comparing their correlation." -- taken from github (Link: **https://stats.stackexchange.com/questions/18082/how-would-you-explain-the-difference-between-correlation-and-covariance**)
+
+![](C:/Users/ERI/reg_2.png)
+
+Correlation is always between -1 and 1 where 1 indicates perfect positive correlation, -1 presents perfect negative correlation and zero means that there is no correlation.
+
+```{r}
+library(ggplot2)
+cor(diamonds$price, diamonds$depth)
+```
+
+#### Correlation doesn't imply causation.
+
+### Anscombe's quartet
+
+#### Look at your data, not just the summary statistics
+
+```{r}
+library(Tmisc)
+data(quartet)
+str(quartet)
+```
+
+```{r}
+library(dplyr)
+quartet %>%
+  group_by(set) %>%
+  summarize(mean(x), sd(x), mean(y), sd(y), cor(x,y))
+```
+
+```{r}
+ggplot(quartet, aes(x, y)) +
+  geom_point() +
+  facet_wrap(~set)
+```
+
+### "All models are wrong, but some are useful" - George Box
+
+### Linear regression
+
+"In statistics, linear regression is a linear approach to modelling the relationship between a scalar response (or dependent variable) and one or more explanatory variables (or independent variables). The case of one explanatory variable is called simple linear regression." -- Wikipedia
+
+### Types of regression models
+
+* Least Square
+* Weighted
+* Generalized
+* Nonparametric
+* Ridge
+* Bayesian
+
+#### Ordinary Least Square (OLS)
+
+"OLS chooses the parameters of a linear function of a set of explanatory variables by the principle of least squares: minimizing the sum of the squares of the differences between the observed dependent variable (values of the variable being predicted) in the given dataset and those predicted by the linear function." -- Wikipedia
+
+Residuals is the difference between observed value and predicted value by the model.
+
+OLS tries to minimize the sum of squares of residuals by selecting model parameters that does that.
+
+#### 7 assumptions of OLS
+
+* The regression model is linear in coefficients and the error term
+* The error term has a population mean of zero
+* All independent variables are uncorrelated with the error term -- exogeneity
+* Error terms are uncorrelated with each other -- Durbin Watson test
+* Error has consant variance (homoscedasticity) -- residual vs. error variance
+* Independent variables are not corelated with one another (no multicollinearity) -- variance inflation factor
+* Error is normally distributed -- QQ-plot
+
+#### Fitting a linear model using OLS
+
+```{r}
+model = lm(mpg ~ disp, data = mtcars)
+```
+
+#### Durbin-Watson test
+
+It detects the presence of autocorrelation in the residuals.
+
+```{r}
+library(car)
+durbinWatsonTest(model)
+```
+
+#### Homoscedasticity test
+
+```{r}
+#install.packages("olsrr")
+library(olsrr)
+```
+
+##### Breusch Pagan Test for heteroscedasticity
+
+```{r}
+mod = lm(mpg ~ disp + hp + wt, mtcars)
+ols_test_breusch_pagan(model)
+```
+
+In case of heteroscedasticity, we can use Box-Cox transformation of the dependent variable.
+
+We can look at various diagnostic plot at a glance by following:
+
+```{r}
+plot(mod)
+```
+
+(studentized residual is the division of a residual by an estimate of its standard deviation)
+
+#### Multicollinearity testing using variance inflation factor
+
+##### Variance inflation factor
+
+"In statistics, the variance inflation factor (VIF) is the ratio of variance in a model with multiple terms, divided by the variance of a model with one term alone.[1] It quantifies the severity of multicollinearity in an ordinary least squares regression analysis. It provides an index that measures how much the variance (the square of the estimate's standard deviation) of an estimated regression coefficient is increased because of collinearity." -- Wikipedia
+
+```{r}
+vif(mod)
+```
+
+"The general rule of thumb is that VIFs exceeding 4 warrant further investigation, while VIFs exceeding 10 are signs of serious multicollinearity requiring correction."
+
+#### We can also transform independent or dependent variables when assumptions are violated
+
+Use log transformation of response data when the variance is unequal.
+
+#### Fitted coefficients
+
+```{r}
+model = lm(mpg ~ disp, data = mtcars)
+```
+
+#### Summary of the model
+
+```{r}
+summary(model)
+```
+
+#### Fitted values
+
+```{r}
+fitted.values(model)
+```
+
+#### Residuals
+
+```{r}
+residuals(model)
+```
+
+**augment** funtion in broom provides original data along with fitted values, residuals, Cook's distance (influence of a data point) etc.
+
+```{r}
+library(broom)
+(mod = augment(model))
+```
+
+#### Sum of squares of error (SSE)
+
+```{r}
+mod %>%
+  summarize(sum(.resid^2))
+```
+
+### Coefficient of determination -- R2
+
+![](C:/Users/ERI/reg_4.png)
+
+Proportion of the variance explained by the model
+
+### Leverage
+
+Leverage is a measure of how far away the independent variable values of an observation are from those of the other observations. High-leverage points are those observations, if any, made at extreme or outlying values of the independent variables such that the lack of neighboring observations means that the fitted regression model will pass close to that particular observation.
+
+A data point has high leverage if it has "extreme" predictor x values.
+
+The leverage of an observation in a regression model is defined entirely in terms of the distance of that observation from the mean of the explanatory variable. That is, observations close to the mean of the explanatory variable have low leverage, while observations far from the mean of the explanatory variable have high leverage. Points of high leverage may or may not be influential.
+
+### Influence - Cook's distance
+
+Cook's distance or Cook's D is a commonly used estimate of the influence of a data point when performing a least-squares regression analysis.[1] In a practical ordinary least squares analysis, Cook's distance can be used in several ways: to indicate influential data points that are particularly worth checking for validity; or to indicate regions of the design space where it would be good to be able to obtain more data points.
+
+A data point is influential if it unduly influences any part of a regression analysis, such as the predicted responses, the estimated slope coefficients, or the hypothesis test results. Outliers and high leverage data points have the potential to be influential, but we generally have to investigate further to determine whether or not they are actually influential.
+
+#### A quick way to look at model diagnostics
+
+```{r}
+ols_plot_diagnostics(model)
+```
+
+
+#### Coefficient of determination
+
+The coefficient of determination, denoted R2 or r2 and pronounced "R squared", is the proportion of the variance in the dependent variable that is predictable from the independent variable. 
+
+![](C:/Users/ERI/reg_5.png)
+
+```{r}
+mod = lm(mpg ~ disp + hp + wt, mtcars)
+summary(mod)$r.squared
+```
+
+
+#### Adjusted coefficient of determination
+
+"Adjusted R2 increases only when you add new independent variables that do increase the explanatory power of the regression equation."
+
+```{r}
+summary(mod)$adj.r.squared
+```
+
+![](C:/Users/ERI/reg_6.png)
+
+### Parallel slopes model
+
+Quantitative independent variable plus qualitative independent variable
+
+```{r}
+mtcars$cyl = factor(mtcars$cyl)
+mod2 = lm(mpg ~ hp + cyl, mtcars)
+mod2
+```
+
+
+```{r}
+library(broom)
+all_mod2 = augment(mod2)
+```
+
+```{r}
+library(ggplot2)
+ggplot(all_mod2, aes(x = hp, y=mpg, color = cyl)) +
+  geom_point() +
+  geom_line(aes(y=.fitted))
+```
+
+### Prediction
+
+```{r}
+additional = data.frame(hp = 140, cyl = as.factor(6))
+predict(mod2, additional)
+```
+
+```{r}
+augment(mod2, additional)
+```
+
+### Logistic regression
+
+Binary response.
+
+##### Logistic function
+
+![](C:/Users/ERI/reg_7.png)
+
+If odds ratio is greater than 1 then the odds increase, conversely if it is less than 1, then it decreases.
+
+##### Logit function
+
+![](C:/Users/ERI/reg_8.png)
+
+exp(beta1) tells us how the expected odds change for a one unit increase in the explanatory variable.
+
+```{r}
+library(ISLR)
+glm_logistic = glm(Direction ~ Lag1 + Volume, data=Smarket, family = binomial)
+```
+
+Let's get the predicted probability for each observation
+
+```{r}
+logistic_prob = predict(glm_logistic, type="response")
+```
+
+Now, create a vector of market direction where the direction is positive if the probability is greater than 0.5.
+
+```{r}
+pred_class = rep("Down", nrow(Smarket))
+pred_class[logistic_prob > 0.5] = "Up"
+```
+
+```{r}
+table(pred_class, Smarket$Direction)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

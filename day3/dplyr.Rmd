@@ -1,0 +1,174 @@
+---
+title: "dplyr"
+author: "Shammunul Islam"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Data management in dplyr
+
+dplyr is a package develped by Hadley Wickham for easy data management, data aggregation and data summary.  
+
+But before we get ourself introduced with dplyr, we need to become familiarized with pipe operator **%>%**
+
+#### %>%
+
+To the right of this operator, function is written and to the left of the operator, the first argument to the function is written.
+
+Let's look at example code to clearly understand.
+
+```{r}
+library(dplyr)
+library(hflights)
+hflights %>% head()
+
+
+```
+
+```{r}
+hflights %>%
+  glimpse()
+```
+
+We will now be using pipe operator all throughout this module. 
+
+We will be focusing now on 5 functions of dplyr, starting with **select**
+
+### select
+
+This is used to select multiple columns or single column of a dataframe.
+
+```{r}
+hflights %>% 
+  select(DepTime, ArrTime) %>%
+  glimpse()
+```
+
+To select the first 10 rows of this, we can also use **head()** like below:
+
+```{r}
+selected = hflights %>% 
+  select(DepTime, ArrTime) %>%
+  head(10)
+write.csv(selected,"selected.csv")
+```
+
+We can also save this as following:
+
+```{r}
+new = hflights %>% 
+  select(DepTime, ArrTime) %>%
+  head(10)
+new
+```
+
+Note that, to see the contents o this dataframe, we had to write the name of this after we have created **new**. We can create and see the contents of a variable by wrapping it around by **()** in the following way:
+
+```{r}
+(new = hflights %>% 
+  select(DepTime, ArrTime) %>%
+  head(10))
+```
+
+We can also choose columns by their positional index. Suppose, we want to select columns 2 to 5 and columns 8 to 12.
+
+```{r}
+hflights %>%
+  select(2:5, 8:12)
+```
+
+### mutate
+
+We use this function to add new column based on available columns.
+
+Let's build a new dataframe sales now.
+
+```{r}
+sales = data.frame(area = rep(c("Syl", "Dhk", "Com", "Fen", "Khu", "Cht"), 10), dept = rep(c("A", "B", "C", "D", "E", "F"), each = 10), sale = rnorm(60, 100000, 20000), cost = rnorm(60, 30000, 10000))
+glimpse(sales)
+```
+
+Now, let's create profit column using sales data.
+
+```{r}
+sales = sales %>%
+  mutate(profit = sale - cost)
+sales
+```
+
+### Filter -- filter
+
+We can select data conditionally where data that meet the condition are only used or returned.
+
+```{r}
+sales %>%
+  filter(dept == "B")
+```
+
+```{r}
+sales %>%
+  filter(cost > 40000)
+```
+
+### arrange
+
+It rearranges dataset based on the column specified.
+
+```{r}
+sales %>%
+  arrange(area + dept)
+```
+
+### group_by
+
+Using this, we can group our data
+
+```{r}
+sales %>%
+  group_by(area, dept)
+```
+
+### summarize -- gives summary statistic
+
+```{r}
+sales %>%
+  summarize(minimum = min(sale), maximum = max(sale))
+```
+
+Now, suppose we want to know the min and max for different areas
+
+```{r}
+sales %>%
+  group_by(area) %>%
+  filter(area == 'Dhk') %>%
+  summarize(minimum = min(sale), maximum = max(sale))
+```
+
+Now, you want to get a summary by both area and by department
+
+```{r}
+sales %>%
+  group_by(area, dept) %>%
+  summarize(minimum = min(sale), maximum = max(sale))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,11 @@
+ROC Curve -> Receiving Operating Characteristics
+
+ True Positive (TP): Correctly classified as the class of interest
+• True Negative (TN): Correctly classified as not the class of interest
+• False Positive (FP): Incorrectly classified as the class of interest (Type-1 Error)
+• False Negative (FN): Incorrectly classified as not the class of interest (Type-2 Error)
+
+power of the test->probability of correctly rejecting null hypothesis (new measure impact)
+
+Entropy = Pr(y) * log(Pr(y))
+Gini Index = sum(Pr(y) * (1-Pr(y)))

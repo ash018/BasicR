@@ -1,0 +1,134 @@
+---
+title: "Probability"
+author: "Shammunul Islam"
+date: "September 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Probability theory
+
+In probability theory, an experiment or trial (see below) is any procedure that can be infinitely repeated and has a well-defined set of possible outcomes, known as the sample space.[1] An experiment is said to be random if it has more than one possible outcome, and deterministic if it has only one. A random experiment that has exactly two (mutually exclusive) possible outcomes is known as a Bernoulli trial (from Wikipedia).
+
+A Bernoulli random variable has two possible outcomes: 0 or 1. A binomial distribution is the sum of independent and identically distributed Bernoulli random variables.
+
+An event is a set of outcomes of an experiment (a subset of the sample space) to which a probability is assigned
+
+### Binomial distribution in R
+
+**rbinom(number of draws, number of coins in each draw, probability of head)**
+
+#### Bernoulli
+
+Let's flip a coin once
+
+```{r}
+set.seed(111)
+rbinom(1, 1, 0.5)
+```
+
+#### Binomial
+
+```{r}
+set.seed(123)
+rbinom(10, 1, 0.5)
+```
+
+```{r}
+set.seed(123)
+rbinom(10, 10, 0.5)
+```
+
+### Density
+
+It is the probability of getting a specified number of success in a number of events with a specified probability of success.
+
+What is the probability of getting 2 heads in 5 flips with a probability of 0.5?
+
+```{r}
+results = rbinom(100000, 5, 0.5)
+mean(results == 2)
+```
+
+Or, we can use
+
+**dbinom(the outcome for which we are calculating density, number of coins, probability of success)**
+
+```{r}
+dbinom(2, 5, 0.5)
+```
+#### What is the probability of getting 4 or less heads in 20 flips with a probability of 0.5?
+
+```{r}
+outcomes = rbinom(10000, 20, 0.5)
+mean(outcomes<=4)
+```
+
+```{r}
+pbinom(5, 20, 0.5)
+```
+
+#### If we flip twenty coins with 50% probability of success, what is the probability of at least 4 heads?
+
+```{r}
+1 - pbinom(3, 20, 0.5)
+```
+
+
+### Normal distribution
+
+As we flip more and more, we approximate towards normal distribution.
+
+```{r}
+hist(rbinom(100000, 30, 0.5))
+```
+
+
+```{r}
+hist(rbinom(100000, 100, 0.5))
+```
+
+```{r}
+hist(rbinom(100000, 500, 0.5))
+```
+
+When we draw from binomial with a very large size, the result looks more and more like a normal distribution.
+
+### Normal approximation to binomial
+
+mu = size.p
+sigma^2 = size * p * (1 - p)
+
+**rnorm(Number of iteration, mu, sigma)**
+
+```{r}
+#rnorm(10000, 1000, 0.5)
+mu = 1000 * 0.5
+sigma_2 = 1000 * 0.5 * 0.5
+std = sqrt(sigma_2)
+hist(rbinom(10000, 1000, 0.5))
+```
+
+```{r}
+hist(rnorm(1000, mu, std))
+```
+
+
+### Task: Approximate the binomial by Normal distribution
+
+### Poisson distribution -- Large n and samll p, good for modeling rare events
+
+```{r}
+data = rbinom(100000, 1000, 1/1000)
+```
+Or,
+
+```{r}
+hist(rpois(1000, 1))
+```
+
+
+
